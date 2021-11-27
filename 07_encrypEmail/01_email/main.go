@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func encode(key []byte, msg string) ([]byte, error) {
+func encodeAndDecode(key []byte, msg string) ([]byte, error) {
 	cipherBlock, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't new cipher: %w", err)
@@ -47,7 +47,7 @@ func main() {
 
 	sb = sb[:16]
 
-	result, err := encode(sb, msg)
+	result, err := encodeAndDecode(sb, msg)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
@@ -55,7 +55,7 @@ func main() {
 
 	fmt.Println(string(result))
 
-	result2, err := encode(sb, string(result))
+	result2, err := encodeAndDecode(sb, string(result))
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
