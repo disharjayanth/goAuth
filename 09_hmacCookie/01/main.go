@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
@@ -21,8 +22,27 @@ func createHmacHash(msg string) string {
 func htmlHandler(c *fiber.Ctx) error {
 	cookie := c.Cookies("session")
 
+	sb := strings.SplitN(cookie, "|", 2)
+
+	isEqual := true
+	if len(sb) == 2 {
+		hash := sb[0]
+		email := sb[1]
+
+		hmacHash := createHmacHash(email)
+
+		isEqual = hmac.Equal([]byte(hash), []byte(hmacHash))
+	}
+
+	message := "Not logged in"
+
+	if isEqual {
+		message = "Logged in"
+	}
+
 	return c.Render("index", fiber.Map{
-		"cookie": cookie,
+		"cookie":             cookie,
+		"loggedInOutMessage": message,
 	})
 }
 
