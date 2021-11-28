@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	f, err := os.Open("08_sha256File/info.txt")
+	f, err := os.Open("info.txt")
 	if err != nil {
 		log.Fatalln("Failed to open info.txt file:", err)
 	}
