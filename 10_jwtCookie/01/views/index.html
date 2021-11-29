@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <title>{{.Title}}</title>
+</head>
+<body>
+    <div class="flex justify-center items-center w-screen h-screen bg-gray-900">
+        <div class="w-80 h-60 bg-white relative rounded-lg flex flex-col justify-center items-center">
+            <div class="absolute flex justify-center items-center rounded-full top-2 right-2 w-7 h-7 p-1 bg-green-800 hover:bg-green-500">
+                <img src="https://img.icons8.com/ios-filled/100/ffffff/checkmark--v1.png"/>
+            </div>
+            <div class="font-medium text-2xl">{{.Body}}</div>
+            <div class="text-xl">{{.Message}}</div>
+            <div class="text-sm text-center text-gray-400 px-1 py-1">{{.Info}}</div>
+        </div>
+    </div>
+</body>
+</html>
