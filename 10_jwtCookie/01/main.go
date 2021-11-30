@@ -57,7 +57,7 @@ func indexHandler(c *fiber.Ctx) error {
 func submitHandler(c *fiber.Ctx) error {
 	email := c.FormValue("email")
 	if email == "" {
-		c.Redirect("/", http.StatusSeeOther)
+		return c.Redirect("/", http.StatusSeeOther)
 	}
 
 	jwt, err := getJWT(email)
