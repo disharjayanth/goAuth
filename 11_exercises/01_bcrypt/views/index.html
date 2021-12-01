@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <title>{{.Title}}</title>
+</head>
+<body>
+    <div class="flex justify-center items-center w-screen h-screen bg-black">
+        <div class="w-80 h-72 border bg-white rounded-xl">
+            <form action="/register" method="post">
+                <div class="flex flex-col px-4 py-4">
+                    <label class="pb-2">User name:</label>
+                    <input class="h-9 p-2 border shadow rounded" type="text" name="username">
+                </div>
+                <div class="flex flex-col px-4 py-4">
+                    <label class="pb-2">Password:</label>
+                    <input class="h-9 p-2 border shadow rounded" type="password" name="password">
+                </div>
+                <div class="flex justify-center px-4 pt-2">
+                    <button class="border shadow rounded-full h-11 w-20 p-2 bg-green-400 hover:bg-green-600">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
