@@ -37,6 +37,10 @@ func getJWT(email string) (string, error) {
 
 func parseJWT(token string) (string, string, error) {
 	parsedToken, err := jwt.ParseWithClaims(token, &CustomClaims{}, func(t *jwt.Token) (interface{}, error) {
+		// optional to check signing algorithm!
+		if t.Method.Alg() != jwt.SigningMethodHS256.Name {
+			return nil, fmt.Errorf("algorithms are not matching")
+		}
 		return []byte(privateKey), nil
 	})
 
