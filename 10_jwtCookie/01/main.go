@@ -35,15 +35,46 @@ func getJWT(email string) (string, error) {
 	return sToken, nil
 }
 
+func parseJWT(token string) (string, string, error) {
+	parsedToken, err := jwt.ParseWithClaims(token, &CustomClaims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(privateKey), nil
+	})
+
+	message := "Not signed in"
+	if err != nil {
+		return "", message, fmt.Errorf("error while parsing jwt token: %w", err)
+	}
+
+	if claims, ok := parsedToken.Claims.(*CustomClaims); ok && parsedToken.Valid {
+		message = "Signed in"
+		return claims.Email, message, nil
+	} else {
+		return "", message, fmt.Errorf("invalid token")
+	}
+}
+
 func indexHandler(c *fiber.Ctx) error {
 	cookies := c.Cookies("session")
 
+	var message string
+	var email string
+	var err error
+
+	if cookies != "" {
+		email, message, err = parseJWT(cookies)
+		fmt.Println(email)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
 	return c.Render("index", fiber.Map{
-		"Title":   "Go fiber app",
-		"Body":    "Hello world!",
-		"Message": "Today is a very good day!",
-		"Info":    "This page is built with Tailwindcss and backend in Golang",
-		"Cookie":  cookies,
+		"Title":         "Go fiber app",
+		"Body":          "Hello world!",
+		"Message":       "Today is a very good day!",
+		"Info":          "This page is built with Tailwindcss and backend in Golang",
+		"Cookie":        cookies,
+		"SignedInOrNot": message,
 	})
 }
 
