@@ -22,7 +22,7 @@ func getJWT(email string) (string, error) {
 	claims := &CustomClaims{
 		Email: email,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(5 * time.Minute).Unix(),
+			ExpiresAt: time.Now().Add(1 * time.Minute).Unix(),
 		},
 	}
 
@@ -37,13 +37,6 @@ func getJWT(email string) (string, error) {
 
 func indexHandler(c *fiber.Ctx) error {
 	cookies := c.Cookies("session")
-	if cookies == "" {
-		cookie := &fiber.Cookie{
-			Name:    "session",
-			Expires: time.Now().Add(1 * time.Minute),
-		}
-		cookies = cookie.Value
-	}
 
 	return c.Render("index", fiber.Map{
 		"Title":   "Go fiber app",
@@ -66,8 +59,9 @@ func submitHandler(c *fiber.Ctx) error {
 	}
 
 	cookie := &fiber.Cookie{
-		Name:  "session",
-		Value: jwt,
+		Name:    "session",
+		Value:   jwt,
+		Expires: time.Now().Add(1 * time.Minute),
 	}
 
 	c.Cookie(cookie)
