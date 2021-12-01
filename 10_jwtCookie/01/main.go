@@ -61,12 +61,13 @@ func indexHandler(c *fiber.Ctx) error {
 	cookies := c.Cookies("session")
 
 	var message string
-	var email string
+	// var email string
 	var err error
 
 	message = "Not signed in"
 	if cookies != "" {
-		email, message, err = parseJWT(cookies)
+		// ignore email since im not using! it can be database index
+		_, message, err = parseJWT(cookies)
 		if err != nil {
 			fmt.Println(err)
 		}
