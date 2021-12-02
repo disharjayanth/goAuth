@@ -12,7 +12,50 @@ import (
 
 func formHandler(c *fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
-		"Title": "User Details",
+		"Title":     "User Sign Up",
+		"FormName":  "Sign Up",
+		"Link":      "/login",
+		"LinkTitle": "Already have an account? Sign In",
+	})
+}
+
+func loginPageHandler(c *fiber.Ctx) error {
+	return c.Render("index", fiber.Map{
+		"Title":     "User Login",
+		"FormName":  "Sign In",
+		"Link":      "/",
+		"LinkTitle": "Don't have an account? Sign Up",
+	})
+}
+
+func loginHandler(c *fiber.Ctx) error {
+	username := c.FormValue("username")
+	password := c.FormValue("password")
+
+	if username == "" || password == "" {
+		return c.Redirect("/login", http.StatusSeeOther)
+	}
+
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("error while generating password: %w", err)
+	}
+
+	user, err := usersdb.RetrieveUser(username)
+	if err != nil {
+		return err
+	}
+
+	if user.Name == username && user.Password == string(hashPassword) {
+		return c.Render("index", fiber.Map{
+			"Title":    "Login successfull",
+			"FormName": "Login successfull",
+		})
+	}
+
+	return c.Render("index", fiber.Map{
+		"Title":    "Login Failed",
+		"FormName": "Login Failed",
 	})
 }
 
@@ -55,6 +98,8 @@ func main() {
 
 	app.Get("/", formHandler)
 	app.Post("/register", registerHandler)
+	app.Get("/login", loginPageHandler)
+	app.Post("/login", loginHandler)
 
 	app.Listen(":8000")
 }
