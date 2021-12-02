@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/disharjayanth/goAuth/11_exercises/01_bcrypt/usersdb"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"golang.org/x/crypto/bcrypt"
 )
-
-type UserDB map[string]string
-
-var users = UserDB{}
 
 func formHandler(c *fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
@@ -32,13 +29,21 @@ func registerHandler(c *fiber.Ctx) error {
 		return fmt.Errorf("error while generating password: %w", err)
 	}
 
-	users[username] = string(hashPassword)
-
-	for k, v := range users {
-		fmt.Println(k, ":", v)
+	user := &usersdb.User{
+		Name:     username,
+		Password: string(hashPassword),
 	}
 
-	return c.Redirect("/", http.StatusSeeOther)
+	trueOrFalse, err := user.Store()
+	if err != nil {
+		return c.SendString(err.Error())
+	}
+
+	if trueOrFalse {
+		return c.Redirect("/", http.StatusSeeOther)
+	}
+
+	return c.SendString("error while storing user datas")
 }
 
 func main() {
