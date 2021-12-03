@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha512"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 
@@ -9,6 +12,8 @@ import (
 	"github.com/gofiber/template/html"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var privateKey []byte = []byte{239, 25, 78, 56, 68, 194, 108, 94, 228, 87, 231, 160, 160, 112, 184, 189, 189, 97, 77, 74, 43, 241, 248, 184, 205, 97, 127, 233, 197, 17, 241, 232, 99, 195, 116, 162, 3, 30, 6, 91, 103, 238, 131, 206, 240, 41, 30, 216, 115, 96, 239, 123, 254, 167, 60, 102, 206, 96, 144, 120, 137, 133, 13, 127}
 
 func formHandler(c *fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
@@ -99,7 +104,29 @@ func registerHandler(c *fiber.Ctx) error {
 	return c.SendString("error while storing user datas")
 }
 
+func createHMACToken(sid string) (string, error) {
+	h := hmac.New(sha512.New, privateKey)
+	if _, err := h.Write([]byte(sid)); err != nil {
+		return "", fmt.Errorf("error in createHMACToken function while writing msg: %w", err)
+	}
+
+	// hex representation
+	// signedHMACHex := fmt.Sprintf("%x", h.Sum(nil))
+
+	// base64 representation
+	signedHMACBase64 := base64.StdEncoding.EncodeToString(h.Sum(nil))
+
+	return signedHMACBase64 + "|" + sid, nil
+}
+
+func parseHMACToken() {}
+
 func main() {
+	signature, err := createHMACToken("1")
+	if err != nil {
+		fmt.Println("Error while creating HMAC token:", err)
+	}
+	fmt.Println(string(signature))
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
