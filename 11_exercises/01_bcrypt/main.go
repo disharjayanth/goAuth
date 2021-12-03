@@ -12,19 +12,21 @@ import (
 
 func formHandler(c *fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
-		"Title":     "User Sign Up",
-		"FormName":  "Sign Up",
-		"Link":      "/login",
-		"LinkTitle": "Already have an account? Sign In",
+		"Title":           "User Sign Up",
+		"FormName":        "Sign Up",
+		"Link":            "/login",
+		"LinkTitle":       "Already have an account? Sign In",
+		"FormLinkHandler": "/register",
 	})
 }
 
 func loginPageHandler(c *fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
-		"Title":     "User Login",
-		"FormName":  "Sign In",
-		"Link":      "/",
-		"LinkTitle": "Don't have an account? Sign Up",
+		"Title":           "User Login",
+		"FormName":        "Sign In",
+		"Link":            "/",
+		"LinkTitle":       "Don't have an account? Sign Up",
+		"FormLinkHandler": "/login",
 	})
 }
 
@@ -36,27 +38,33 @@ func loginHandler(c *fiber.Ctx) error {
 		return c.Redirect("/login", http.StatusSeeOther)
 	}
 
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return fmt.Errorf("error while generating password: %w", err)
-	}
-
 	user, err := usersdb.RetrieveUser(username)
 	if err != nil {
 		return err
 	}
 
-	if user.Name == username && user.Password == string(hashPassword) {
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		fmt.Printf("error while comparing password: %w", err)
 		return c.Render("index", fiber.Map{
-			"Title":    "Login successfull",
-			"FormName": "Login successfull",
+			"Title":           "Login Failed",
+			"FormName":        "Login Failed",
+			"FormLinkHandler": "/login",
 		})
 	}
 
-	return c.Render("index", fiber.Map{
-		"Title":    "Login Failed",
-		"FormName": "Login Failed",
-	})
+	if user.Name == username && err == nil {
+		return c.Render("index", fiber.Map{
+			"Title":           "Login successfull",
+			"FormName":        "Login successfull",
+			"FormLinkHandler": "/login",
+		})
+	}
+
+	fmt.Println(username, password)
+	fmt.Println(user.Name, string(user.Password))
+
+	return nil
 }
 
 func registerHandler(c *fiber.Ctx) error {

@@ -21,9 +21,10 @@ type User struct {
 func init() {
 	// connection properties
 	config := mysql.Config{
-		User:   os.Getenv("DBUSER"),
-		Passwd: os.Getenv("DBPASS"),
-		DBName: "golangUsers",
+		User:                 os.Getenv("DBUSER"),
+		Passwd:               os.Getenv("DBPASS"),
+		DBName:               "golangUsers",
+		AllowNativePasswords: true,
 	}
 
 	// get a database handle

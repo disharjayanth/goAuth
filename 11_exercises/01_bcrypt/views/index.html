@@ -14,7 +14,7 @@
     <div class="flex justify-center items-center w-screen h-screen bg-black">
       <div class="w-80 h-96 border bg-white rounded-xl">
         <h2 class="pl-4 pt-4 text-xl font-bold">{{.FormName}}</h2>
-        <form action="/register" method="post">
+        <form action="{{.FormLinkHandler}}" method="post">
           <div class="flex flex-col px-4 py-4">
             <label class="pb-2">User name:</label>
             <input
