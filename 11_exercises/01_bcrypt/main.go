@@ -50,6 +50,7 @@ func loginHandler(c *fiber.Ctx) error {
 			"Title":           "Login Failed",
 			"FormName":        "Login Failed",
 			"FormLinkHandler": "/login",
+			"LinkTitle":       "Don't have an account? Sign Up",
 		})
 	}
 
@@ -58,6 +59,7 @@ func loginHandler(c *fiber.Ctx) error {
 			"Title":           "Login successfull",
 			"FormName":        "Login successfull",
 			"FormLinkHandler": "/login",
+			"LinkTitle":       "Login Successfull!",
 		})
 	}
 
@@ -91,7 +93,7 @@ func registerHandler(c *fiber.Ctx) error {
 	}
 
 	if trueOrFalse {
-		return c.Redirect("/", http.StatusSeeOther)
+		return c.Redirect("/login", http.StatusSeeOther)
 	}
 
 	return c.SendString("error while storing user datas")
