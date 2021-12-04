@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/disharjayanth/goAuth/11_exercises/01_bcrypt/usersdb"
 	"github.com/gofiber/fiber/v2"
@@ -107,7 +108,7 @@ func registerHandler(c *fiber.Ctx) error {
 func createHMACToken(sid string) (string, error) {
 	h := hmac.New(sha512.New, privateKey)
 	if _, err := h.Write([]byte(sid)); err != nil {
-		return "", fmt.Errorf("error in createHMACToken function while writing msg: %w", err)
+		return "", fmt.Errorf("error in createHMACToken function while writing sid to hash: %w", err)
 	}
 
 	// hex representation
@@ -119,14 +120,44 @@ func createHMACToken(sid string) (string, error) {
 	return signedHMACBase64 + "|" + sid, nil
 }
 
-func parseHMACToken() {}
+func parseHMACToken(ss string) (string, error) {
+	xs := strings.SplitN(ss, "|", 2)
+	token := xs[0]
+	sid := xs[1]
+
+	sb, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return "", fmt.Errorf("error in parseHMACToken function while decoding base64 to hmac: %w", err)
+	}
+
+	h := hmac.New(sha512.New, privateKey)
+	if _, err := h.Write([]byte(sid)); err != nil {
+		return "", fmt.Errorf("error in parseHMACToken function while writing sid to hash: %w", err)
+	}
+
+	if hmac.Equal(sb, h.Sum(nil)) {
+		return sid, nil
+	} else {
+		return "", fmt.Errorf("error in parseHMACToken function and hmacs are'nt equal: %w", err)
+	}
+}
 
 func main() {
 	signature, err := createHMACToken("1")
 	if err != nil {
 		fmt.Println("Error while creating HMAC token:", err)
+		return
 	}
 	fmt.Println(string(signature))
+
+	parsedToken, err := parseHMACToken(signature)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("sid after parsing:", parsedToken)
+
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
