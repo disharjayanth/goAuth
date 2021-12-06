@@ -7,22 +7,51 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/disharjayanth/goAuth/11_exercises/01_bcrypt/sessiondb"
 	"github.com/disharjayanth/goAuth/11_exercises/01_bcrypt/usersdb"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var privateKey []byte = []byte{239, 25, 78, 56, 68, 194, 108, 94, 228, 87, 231, 160, 160, 112, 184, 189, 189, 97, 77, 74, 43, 241, 248, 184, 205, 97, 127, 233, 197, 17, 241, 232, 99, 195, 116, 162, 3, 30, 6, 91, 103, 238, 131, 206, 240, 41, 30, 216, 115, 96, 239, 123, 254, 167, 60, 102, 206, 96, 144, 120, 137, 133, 13, 127}
 
 func formHandler(c *fiber.Ctx) error {
+	cookie := c.Cookies("session")
+	fmt.Println("cookie", cookie)
+	username := ""
+	if cookie != "" {
+		sid, err := parseHMACToken(cookie)
+		if err != nil {
+			return c.SendString("error while parsing token from cookie")
+		}
+		fmt.Println("sid:", sid, err)
+
+		username, err = sessiondb.Get(sid)
+		if err != nil {
+			return c.SendString("error while getting user's session id")
+		}
+		fmt.Println(username)
+
+		return c.Render("index", fiber.Map{
+			"Title":           "User Sign Up",
+			"FormName":        "Sign Up",
+			"Link":            "/login",
+			"LinkTitle":       "Already have an account? Sign In",
+			"FormLinkHandler": "/register",
+			"Username":        username,
+		})
+	}
 	return c.Render("index", fiber.Map{
 		"Title":           "User Sign Up",
 		"FormName":        "Sign Up",
 		"Link":            "/login",
 		"LinkTitle":       "Already have an account? Sign In",
 		"FormLinkHandler": "/register",
+		"Username":        username,
 	})
 }
 
@@ -60,13 +89,32 @@ func loginHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if user.Name == username && err == nil {
-		return c.Render("index", fiber.Map{
-			"Title":           "Login successfull",
-			"FormName":        "Login successfull",
-			"FormLinkHandler": "/login",
-			"LinkTitle":       "Login Successfull!",
-		})
+	// Store user's session id to sessiondb
+	session := sessiondb.Session{
+		Name: username,
+		SID:  uuid.NewString(),
+	}
+
+	success, err := session.Store()
+	if err != nil {
+		return c.SendString("error while storing user's session id" + err.Error())
+	}
+
+	token, err := createHMACToken(session.SID)
+	if err != nil {
+		return c.SendString("error while create HMAC token")
+	}
+
+	cookie := fiber.Cookie{
+		Name:    "session",
+		Value:   token,
+		Expires: time.Now().Add(1 * time.Minute),
+	}
+
+	c.Cookie(&cookie)
+
+	if user.Name == username && err == nil && success {
+		return c.Redirect("/", http.StatusSeeOther)
 	}
 
 	fmt.Println(username, password)
@@ -88,6 +136,7 @@ func registerHandler(c *fiber.Ctx) error {
 		return fmt.Errorf("error while generating password: %w", err)
 	}
 
+	// Store user to userdb
 	user := &usersdb.User{
 		Name:     username,
 		Password: string(hashPassword),
@@ -98,8 +147,32 @@ func registerHandler(c *fiber.Ctx) error {
 		return c.SendString(err.Error())
 	}
 
-	if trueOrFalse {
-		return c.Redirect("/login", http.StatusSeeOther)
+	// Store user's session id to sessiondb
+	session := sessiondb.Session{
+		Name: username,
+		SID:  uuid.NewString(),
+	}
+
+	success, err := session.Store()
+	if err != nil {
+		return c.SendString("error while storing user's session id")
+	}
+
+	token, err := createHMACToken(session.SID)
+	if err != nil {
+		return c.SendString("error while create HMAC token")
+	}
+
+	cookie := fiber.Cookie{
+		Name:    "session",
+		Value:   token,
+		Expires: time.Now().Add(1 * time.Minute),
+	}
+
+	c.Cookie(&cookie)
+
+	if trueOrFalse && success {
+		return c.Redirect("/", http.StatusSeeOther)
 	}
 
 	return c.SendString("error while storing user datas")
