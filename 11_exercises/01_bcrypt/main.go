@@ -21,20 +21,17 @@ var privateKey []byte = []byte{239, 25, 78, 56, 68, 194, 108, 94, 228, 87, 231, 
 
 func formHandler(c *fiber.Ctx) error {
 	cookie := c.Cookies("session")
-	fmt.Println("cookie", cookie)
 	username := ""
 	if cookie != "" {
 		sid, err := parseHMACToken(cookie)
 		if err != nil {
 			return c.SendString("error while parsing token from cookie")
 		}
-		fmt.Println("sid:", sid, err)
 
 		username, err = sessiondb.Get(sid)
 		if err != nil {
 			return c.SendString("error while getting user's session id")
 		}
-		fmt.Println(username)
 
 		return c.Render("index", fiber.Map{
 			"Title":           "User Sign Up",
@@ -80,7 +77,6 @@ func loginHandler(c *fiber.Ctx) error {
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		fmt.Printf("error while comparing password: %w", err)
 		return c.Render("index", fiber.Map{
 			"Title":           "Login Failed",
 			"FormName":        "Login Failed",
@@ -116,9 +112,6 @@ func loginHandler(c *fiber.Ctx) error {
 	if user.Name == username && err == nil && success {
 		return c.Redirect("/", http.StatusSeeOther)
 	}
-
-	fmt.Println(username, password)
-	fmt.Println(user.Name, string(user.Password))
 
 	return nil
 }
@@ -216,21 +209,6 @@ func parseHMACToken(ss string) (string, error) {
 }
 
 func main() {
-	signature, err := createHMACToken("1")
-	if err != nil {
-		fmt.Println("Error while creating HMAC token:", err)
-		return
-	}
-	fmt.Println(string(signature))
-
-	parsedToken, err := parseHMACToken(signature)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println("sid after parsing:", parsedToken)
-
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{

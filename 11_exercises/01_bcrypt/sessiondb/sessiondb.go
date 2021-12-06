@@ -46,8 +46,6 @@ func (s *Session) Store() (bool, error) {
 		return false, fmt.Errorf("error while inserting sid into sessionid table: %w", err)
 	}
 
-	fmt.Println(result.RowsAffected())
-
 	count, err := result.RowsAffected()
 	if err != nil {
 		return false, fmt.Errorf("error while getting sid's id after inserting: %w", err)
