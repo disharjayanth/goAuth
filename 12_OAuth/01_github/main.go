@@ -38,7 +38,18 @@ func init() {
 
 func callBackCodeHandler(c *fiber.Ctx) error {
 	code := c.Query("code")
-	fmt.Println("code:", code)
+	state := c.Query("state")
+	fmt.Println("code:", code, "state:", state)
+
+	token, err := githubOAuthConfig.Exchange(c.Context(), code)
+	if err != nil {
+		return fmt.Errorf("Couldn't login: %w", err)
+	}
+
+	tokenSource := githubOAuthConfig.TokenSource(c.Context(), token)
+
+	client := oauth2.NewClient(c.Context(), tokenSource)
+
 	return nil
 }
 
