@@ -63,6 +63,7 @@ func callBackCodeHandler(c *fiber.Ctx) error {
 
 	tokenSource := githubOAuthConfig.TokenSource(c.Context(), token)
 
+	// Authenticated client
 	client := oauth2.NewClient(c.Context(), tokenSource)
 
 	const query = `{ 
